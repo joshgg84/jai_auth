@@ -8,6 +8,7 @@
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             padding: 20px;
+            margin: 0;
         }
         .container {
             max-width: 600px;
@@ -16,18 +17,26 @@
             padding: 30px;
             border-radius: 10px;
         }
+        h2 {
+            color: #667eea;
+        }
         input, button {
             width: 100%;
-            padding: 10px;
+            padding: 12px;
             margin: 10px 0;
             border: 1px solid #ddd;
             border-radius: 5px;
+            font-size: 14px;
         }
         button {
             background: #667eea;
             color: white;
             cursor: pointer;
             border: none;
+            font-weight: bold;
+        }
+        button:hover {
+            background: #5a67d8;
         }
         .api-key {
             background: #f0f0f0;
@@ -36,39 +45,66 @@
             word-break: break-all;
             font-family: monospace;
             margin: 10px 0;
+            font-size: 12px;
         }
         .logout {
             background: #e53e3e;
             margin-top: 20px;
         }
+        .logout:hover {
+            background: #c53030;
+        }
+        .info {
+            background: #e2e8f0;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+            font-size: 14px;
+        }
+        .warning {
+            color: #e53e3e;
+            font-size: 12px;
+            margin-top: 10px;
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <h2>Welcome, <span id="username"></span>!</h2>
-        <p>Generate your Jai API key to start using the AI:</p>
-        
-        <button id="generateBtn">🔑 Generate API Key</button>
-        
-        <div id="apiKeySection" style="display:none;">
-            <h3>Your API Key (Save this!)</h3>
-            <div class="api-key" id="apiKey"></div>
-            <button id="copyBtn">📋 Copy to Clipboard</button>
-            <p style="color:red; font-size:12px;">⚠️ This key will only be shown once!</p>
+        <h2>🤖 Welcome, <span id="username"></span>!</h2>
+        <div class="info">
+            Generate your Jai API key to start using the AI service.
         </div>
         
-        <button id="logoutBtn" class="logout">Logout</button>
+        <button id="generateBtn">🔑 Generate My API Key</button>
+        
+        <div id="apiKeySection" style="display:none;">
+            <h3>Your API Key</h3>
+            <div class="api-key" id="apiKey"></div>
+            <button id="copyBtn">📋 Copy to Clipboard</button>
+            <div class="warning">⚠️ Save this key now! It will not be shown again.</div>
+        </div>
+        
+        <button id="logoutBtn" class="logout">🚪 Logout</button>
     </div>
 
     <script>
-        const username = localStorage.getItem('username');
+        // Check if user is logged in
+        const username = localStorage.getItem('jai_username');
         if (!username) {
             window.location.href = 'login.html';
         }
         
         document.getElementById('username').textContent = username;
         
-        // Generate API key (store in localStorage for demo)
+        // Check if user already has an API key
+        const existingKey = localStorage.getItem('jai_api_key_' + username);
+        if (existingKey) {
+            document.getElementById('apiKey').textContent = existingKey;
+            document.getElementById('apiKeySection').style.display = 'block';
+            document.getElementById('generateBtn').style.display = 'none';
+        }
+        
+        // Generate API key
         document.getElementById('generateBtn').addEventListener('click', () => {
             const apiKey = 'jai_' + Math.random().toString(36).substring(2) + 
                           Math.random().toString(36).substring(2);
@@ -80,14 +116,16 @@
             document.getElementById('generateBtn').style.display = 'none';
         });
         
+        // Copy API key
         document.getElementById('copyBtn').addEventListener('click', () => {
             const apiKey = document.getElementById('apiKey').textContent;
             navigator.clipboard.writeText(apiKey);
-            alert('API Key copied!');
+            alert('✅ API Key copied to clipboard!');
         });
         
+        // Logout
         document.getElementById('logoutBtn').addEventListener('click', () => {
-            localStorage.removeItem('username');
+            localStorage.removeItem('jai_username');
             window.location.href = 'login.html';
         });
     </script>
