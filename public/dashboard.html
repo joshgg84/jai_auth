@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Dashboard - Jai</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+        }
+        input, button {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        button {
+            background: #667eea;
+            color: white;
+            cursor: pointer;
+            border: none;
+        }
+        .api-key {
+            background: #f0f0f0;
+            padding: 15px;
+            border-radius: 5px;
+            word-break: break-all;
+            font-family: monospace;
+            margin: 10px 0;
+        }
+        .logout {
+            background: #e53e3e;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Welcome, <span id="username"></span>!</h2>
+        <p>Generate your Jai API key to start using the AI:</p>
+        
+        <button id="generateBtn">🔑 Generate API Key</button>
+        
+        <div id="apiKeySection" style="display:none;">
+            <h3>Your API Key (Save this!)</h3>
+            <div class="api-key" id="apiKey"></div>
+            <button id="copyBtn">📋 Copy to Clipboard</button>
+            <p style="color:red; font-size:12px;">⚠️ This key will only be shown once!</p>
+        </div>
+        
+        <button id="logoutBtn" class="logout">Logout</button>
+    </div>
+
+    <script>
+        const username = localStorage.getItem('username');
+        if (!username) {
+            window.location.href = 'login.html';
+        }
+        
+        document.getElementById('username').textContent = username;
+        
+        // Generate API key (store in localStorage for demo)
+        document.getElementById('generateBtn').addEventListener('click', () => {
+            const apiKey = 'jai_' + Math.random().toString(36).substring(2) + 
+                          Math.random().toString(36).substring(2);
+            
+            localStorage.setItem('jai_api_key_' + username, apiKey);
+            
+            document.getElementById('apiKey').textContent = apiKey;
+            document.getElementById('apiKeySection').style.display = 'block';
+            document.getElementById('generateBtn').style.display = 'none';
+        });
+        
+        document.getElementById('copyBtn').addEventListener('click', () => {
+            const apiKey = document.getElementById('apiKey').textContent;
+            navigator.clipboard.writeText(apiKey);
+            alert('API Key copied!');
+        });
+        
+        document.getElementById('logoutBtn').addEventListener('click', () => {
+            localStorage.removeItem('username');
+            window.location.href = 'login.html';
+        });
+    </script>
+</body>
+</html>
