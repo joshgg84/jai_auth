@@ -34,27 +34,47 @@
             border-radius: 5px;
             cursor: pointer;
         }
+        button:hover {
+            background: #5a67d8;
+        }
         .error {
             color: red;
             margin: 10px 0;
+            padding: 10px;
+            background: #fed7d7;
+            border-radius: 5px;
         }
         .success {
             color: green;
             margin: 10px 0;
+            padding: 10px;
+            background: #c6f6d5;
+            border-radius: 5px;
+        }
+        .redirect {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 14px;
+        }
+        .redirect a {
+            color: #667eea;
+            text-decoration: none;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h2>Sign Up</h2>
+        <h2>Sign Up for Jai API</h2>
         <form id="signupForm">
             <input type="text" id="username" placeholder="Username" required>
             <input type="email" id="email" placeholder="Email" required>
             <input type="password" id="password" placeholder="Password" required>
-            <button type="submit">Sign Up</button>
+            <button type="submit">Create Account</button>
         </form>
         <div id="message"></div>
-        <p>Already have an account? <a href="login.html">Login</a></p>
+        <div class="redirect">
+            Already have an account? <a href="login.html">Login here</a>
+        </div>
     </div>
 
     <script>
@@ -64,26 +84,27 @@
             const username = document.getElementById('username').value;
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
+            const messageDiv = document.getElementById('message');
             
             try {
-                const res = await fetch('/api/signup', {
+                const response = await fetch('/api/signup', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({username, email, password})
                 });
                 
-                const data = await res.json();
+                const data = await response.json();
                 
-                if (res.ok) {
-                    document.getElementById('message').innerHTML = 
-                        '<div class="success">Account created! <a href="login.html">Login here</a></div>';
+                if (response.ok) {
+                    messageDiv.innerHTML = '<div class="success">✅ Account created successfully! Redirecting to Dashboard...</div>';
+                    setTimeout(() => {
+                        window.location.href = 'dashboard.html';
+                    }, 2000);
                 } else {
-                    document.getElementById('message').innerHTML = 
-                        '<div class="error">' + data.error + '</div>';
+                    messageDiv.innerHTML = '<div class="error">❌ ' + data.error + '</div>';
                 }
             } catch(err) {
-                document.getElementById('message').innerHTML = 
-                    '<div class="error">Error connecting to server</div>';
+                messageDiv.innerHTML = '<div class="error">❌ Connection error. Is the server running?</div>';
             }
         });
     </script>
