@@ -1,134 +1,63 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sign Up - Jai AI</title>
+    <title>Sign Up - Jai</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-family: Arial, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
-            padding: 20px;
+            margin: 0;
         }
-
         .container {
             background: white;
-            border-radius: 20px;
             padding: 40px;
-            width: 100%;
-            max-width: 400px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            border-radius: 10px;
+            width: 350px;
         }
-
-        h1 {
-            text-align: center;
-            color: #667eea;
-            margin-bottom: 30px;
-        }
-
-        .form-group {
-            margin-bottom: 20px;
-        }
-
         input {
             width: 100%;
-            padding: 12px;
-            border: 2px solid #e0e0e0;
-            border-radius: 8px;
-            font-size: 16px;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 5px;
         }
-
-        input:focus {
-            outline: none;
-            border-color: #667eea;
-        }
-
         button {
             width: 100%;
-            padding: 12px;
+            padding: 10px;
             background: #667eea;
             color: white;
             border: none;
-            border-radius: 8px;
-            font-size: 16px;
+            border-radius: 5px;
             cursor: pointer;
         }
-
-        button:hover {
-            background: #5a67d8;
+        .error {
+            color: red;
+            margin: 10px 0;
         }
-
-        .alert {
-            padding: 10px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            display: none;
-        }
-
-        .alert-error {
-            background: #fed7d7;
-            color: #742a2a;
-            border: 1px solid #fc8181;
-        }
-
-        .alert-success {
-            background: #c6f6d5;
-            color: #22543d;
-            border: 1px solid #9ae6b4;
-        }
-
-        .footer {
-            text-align: center;
-            margin-top: 20px;
-            font-size: 14px;
-        }
-
-        .footer a {
-            color: #667eea;
-            text-decoration: none;
+        .success {
+            color: green;
+            margin: 10px 0;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>🔐 Sign Up for Jai API</h1>
-        
-        <div class="alert" id="alert"></div>
-        
+        <h2>Sign Up</h2>
         <form id="signupForm">
-            <div class="form-group">
-                <input type="text" id="username" placeholder="Username" required>
-            </div>
-            
-            <div class="form-group">
-                <input type="email" id="email" placeholder="Email" required>
-            </div>
-            
-            <div class="form-group">
-                <input type="password" id="password" placeholder="Password" required>
-            </div>
-            
+            <input type="text" id="username" placeholder="Username" required>
+            <input type="email" id="email" placeholder="Email" required>
+            <input type="password" id="password" placeholder="Password" required>
             <button type="submit">Sign Up</button>
         </form>
-        
-        <div class="footer">
-            <a href="/login.html">Already have an account? Log in</a>
-        </div>
+        <div id="message"></div>
+        <p>Already have an account? <a href="login.html">Login</a></p>
     </div>
 
     <script>
-        const API_BASE = window.location.origin;
-        
         document.getElementById('signupForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             
@@ -136,40 +65,25 @@
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
             
-            const alert = document.getElementById('alert');
-            
             try {
-                const response = await fetch(`${API_BASE}/api/signup`, {
+                const res = await fetch('/api/signup', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        username: username,
-                        email: email,
-                        password: password
-                    })
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({username, email, password})
                 });
                 
-                const data = await response.json();
+                const data = await res.json();
                 
-                if (response.ok) {
-                    alert.className = 'alert alert-success';
-                    alert.textContent = 'Account created! Redirecting to login...';
-                    alert.style.display = 'block';
-                    
-                    setTimeout(() => {
-                        window.location.href = '/login.html';
-                    }, 2000);
+                if (res.ok) {
+                    document.getElementById('message').innerHTML = 
+                        '<div class="success">Account created! <a href="login.html">Login here</a></div>';
                 } else {
-                    alert.className = 'alert alert-error';
-                    alert.textContent = data.error || 'Signup failed';
-                    alert.style.display = 'block';
+                    document.getElementById('message').innerHTML = 
+                        '<div class="error">' + data.error + '</div>';
                 }
-            } catch (error) {
-                alert.className = 'alert alert-error';
-                alert.textContent = 'Connection error';
-                alert.style.display = 'block';
+            } catch(err) {
+                document.getElementById('message').innerHTML = 
+                    '<div class="error">Error connecting to server</div>';
             }
         });
     </script>
