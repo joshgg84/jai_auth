@@ -3,95 +3,150 @@
 <head>
     <title>Dashboard - Jai</title>
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
         body {
-            font-family: Arial, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
-            padding: 20px;
+            padding: 0;
             margin: 0;
         }
-        .container {
-            max-width: 600px;
-            margin: 0 auto;
+        .fullscreen {
+            width: 100%;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .card {
             background: white;
-            padding: 30px;
-            border-radius: 10px;
+            max-width: 600px;
+            width: 100%;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
         }
         h2 {
             color: #667eea;
+            margin-bottom: 10px;
         }
-        input, button {
-            width: 100%;
-            padding: 12px;
-            margin: 10px 0;
-            border: 1px solid #ddd;
-            border-radius: 5px;
+        .welcome {
+            color: #666;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+        .info {
+            background: #e2e8f0;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
             font-size: 14px;
         }
         button {
+            width: 100%;
+            padding: 14px;
             background: #667eea;
             color: white;
-            cursor: pointer;
             border: none;
-            font-weight: bold;
+            border-radius: 10px;
+            font-size: 16px;
+            cursor: pointer;
+            margin: 10px 0;
+            font-weight: 600;
         }
         button:hover {
             background: #5a67d8;
         }
-        .api-key {
-            background: #f0f0f0;
-            padding: 15px;
-            border-radius: 5px;
-            word-break: break-all;
-            font-family: monospace;
-            margin: 10px 0;
-            font-size: 12px;
+        .api-key-box {
+            background: #f7f7f7;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border: 2px solid #e0e0e0;
         }
-        .logout {
+        .api-key-label {
+            font-size: 14px;
+            font-weight: 600;
+            color: #666;
+            margin-bottom: 10px;
+        }
+        .api-key-value {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 14px;
+            word-break: break-all;
+            border: 1px solid #e0e0e0;
+            margin: 10px 0;
+        }
+        .copy-btn {
+            background: #38a169;
+            margin-top: 5px;
+        }
+        .copy-btn:hover {
+            background: #2f855a;
+        }
+        .logout-btn {
             background: #e53e3e;
             margin-top: 20px;
         }
-        .logout:hover {
+        .logout-btn:hover {
             background: #c53030;
-        }
-        .info {
-            background: #e2e8f0;
-            padding: 10px;
-            border-radius: 5px;
-            margin: 10px 0;
-            font-size: 14px;
         }
         .warning {
             color: #e53e3e;
             font-size: 12px;
             margin-top: 10px;
+            text-align: center;
+        }
+        .success {
+            color: #38a169;
+            font-size: 14px;
+            text-align: center;
+            margin-top: 10px;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h2>🤖 Welcome, <span id="username"></span>!</h2>
-        <div class="info">
-            Generate your Jai API key to start using the AI service.
+    <div class="fullscreen">
+        <div class="card">
+            <h2>🤖 Jai Dashboard</h2>
+            <div class="welcome">
+                Welcome, <strong id="username"></strong>!
+            </div>
+            
+            <div class="info">
+                📋 Generate your API key to start using Jai AI
+            </div>
+            
+            <button id="generateBtn">🔑 Generate API Key</button>
+            
+            <div id="apiKeySection" style="display:none;">
+                <div class="api-key-box">
+                    <div class="api-key-label">🔐 YOUR API KEY (Save this!)</div>
+                    <div class="api-key-value" id="apiKey"></div>
+                    <button id="copyBtn" class="copy-btn">📋 Copy to Clipboard</button>
+                    <div class="warning">⚠️ This key will only be shown once!</div>
+                </div>
+            </div>
+            
+            <button id="logoutBtn" class="logout-btn">🚪 Logout</button>
         </div>
-        
-        <button id="generateBtn">🔑 Generate My API Key</button>
-        
-        <div id="apiKeySection" style="display:none;">
-            <h3>Your API Key</h3>
-            <div class="api-key" id="apiKey"></div>
-            <button id="copyBtn">📋 Copy to Clipboard</button>
-            <div class="warning">⚠️ Save this key now! It will not be shown again.</div>
-        </div>
-        
-        <button id="logoutBtn" class="logout">🚪 Logout</button>
     </div>
 
     <script>
-        // Check if user is logged in
+        // Check session (localStorage)
         const username = localStorage.getItem('jai_username');
         if (!username) {
-            window.location.href = 'login.html';
+            // No session, redirect to signup
+            window.location.href = 'signup.html';
         }
         
         document.getElementById('username').textContent = username;
@@ -107,6 +162,7 @@
         // Generate API key
         document.getElementById('generateBtn').addEventListener('click', () => {
             const apiKey = 'jai_' + Math.random().toString(36).substring(2) + 
+                          Math.random().toString(36).substring(2) +
                           Math.random().toString(36).substring(2);
             
             localStorage.setItem('jai_api_key_' + username, apiKey);
@@ -117,16 +173,23 @@
         });
         
         // Copy API key
-        document.getElementById('copyBtn').addEventListener('click', () => {
+        document.getElementById('copyBtn').addEventListener('click', async () => {
             const apiKey = document.getElementById('apiKey').textContent;
-            navigator.clipboard.writeText(apiKey);
-            alert('✅ API Key copied to clipboard!');
+            await navigator.clipboard.writeText(apiKey);
+            
+            // Show feedback
+            const copyBtn = document.getElementById('copyBtn');
+            const originalText = copyBtn.textContent;
+            copyBtn.textContent = '✅ Copied!';
+            setTimeout(() => {
+                copyBtn.textContent = originalText;
+            }, 2000);
         });
         
         // Logout
         document.getElementById('logoutBtn').addEventListener('click', () => {
             localStorage.removeItem('jai_username');
-            window.location.href = 'login.html';
+            window.location.href = 'signup.html';
         });
     </script>
 </body>
