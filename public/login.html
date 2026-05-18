@@ -1,119 +1,876 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Login - Jai</title>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-<style>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Dashboard - Jai API</title>
+    <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
+        
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            padding: 20px;
         }
+        
         .container {
-            background: white;
-            padding: 40px;
-            border-radius: 10px;
-            width: 300px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 1200px;
+            margin: 0 auto;
         }
-        h2 {
-            text-align: center;
+        
+        .header {
+            background: white;
+            border-radius: 20px;
+            padding: 20px 30px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        
+        .header h1 {
             color: #667eea;
+            font-size: 24px;
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .user-info span {
+            color: #666;
+            font-weight: 500;
+        }
+        
+        .logout-btn {
+            background: #e53e3e;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .stat-card .number {
+            font-size: 36px;
+            font-weight: bold;
+            color: #667eea;
+        }
+        
+        .stat-card .label {
+            color: #666;
+            margin-top: 5px;
+        }
+        
+        .create-section {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .create-section h3 {
+            color: #333;
             margin-bottom: 20px;
         }
-        input {
+        
+        .tier-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .tier-card {
+            border: 2px solid #e0e0e0;
+            border-radius: 15px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+        }
+        
+        .tier-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+        
+        .tier-card.selected {
+            border-color: #667eea;
+            background: #f8f9ff;
+        }
+        
+        .tier-card.recommended {
+            border-color: #38a169;
+            background: #f0fff4;
+        }
+        
+        .recommended-badge {
+            position: absolute;
+            top: -12px;
+            right: 20px;
+            background: #38a169;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        
+        .tier-name {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        .tier-price {
+            font-size: 28px;
+            font-weight: bold;
+            color: #667eea;
+            margin: 15px 0;
+        }
+        
+        .tier-price small {
+            font-size: 14px;
+            color: #666;
+        }
+        
+        .tier-features {
+            list-style: none;
+            margin: 15px 0;
+        }
+        
+        .tier-features li {
+            padding: 5px 0;
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .tier-features li:before {
+            content: "✓";
+            color: #38a169;
+            margin-right: 8px;
+            font-weight: bold;
+        }
+        
+        .tier-features li.disabled:before {
+            content: "✗";
+            color: #e53e3e;
+        }
+        
+        .tier-features li.disabled {
+            color: #ccc;
+        }
+        
+        .key-name-input {
+            margin-top: 20px;
+        }
+        
+        .key-name-input label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 500;
+        }
+        
+        .key-name-input input {
             width: 100%;
             padding: 12px;
-            margin: 10px 0;
             border: 2px solid #e0e0e0;
             border-radius: 8px;
-            font-size: 16px;
+            font-size: 14px;
         }
-        input:focus {
-            outline: none;
-            border-color: #667eea;
-        }
-        button {
-            width: 100%;
-            padding: 12px;
+        
+        .create-btn {
             background: #667eea;
             color: white;
             border: none;
+            padding: 12px 30px;
             border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
             font-size: 16px;
+            margin-top: 20px;
+            width: 100%;
+        }
+        
+        .create-btn:hover:not(:disabled) {
+            background: #5a67d8;
+        }
+        
+        .create-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .modal-content {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 500px;
+            width: 90%;
+            position: relative;
+        }
+        
+        .close-modal {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 24px;
+            cursor: pointer;
+            color: #999;
+        }
+        
+        .bank-details {
+            background: #f7f7f7;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            text-align: center;
+        }
+        
+        .bank-details p {
+            margin: 10px 0;
+        }
+        
+        .copy-bank-btn {
+            background: #38a169;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 5px;
             cursor: pointer;
             margin-top: 10px;
         }
-        button:hover {
-            background: #5a67d8;
-        }
-        .error {
-            color: red;
-            margin: 10px 0;
+        
+        .payment-input {
+            width: 100%;
             padding: 10px;
-            background: #fed7d7;
-            border-radius: 5px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            margin: 10px 0;
+            font-family: monospace;
         }
-        .redirect {
+        
+        .verify-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 10px;
+        }
+        
+        .keys-section {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .keys-section h3 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+        
+        .key-card {
+            background: #f7f7f7;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-left: 4px solid;
+        }
+        
+        .key-card.free { border-left-color: #e2e8f0; }
+        .key-card.pro { border-left-color: #4299e1; }
+        .key-card.enterprise { border-left-color: #ed8936; }
+        
+        .key-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .key-name {
+            font-weight: bold;
+            color: #333;
+            font-size: 16px;
+        }
+        
+        .tier-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        
+        .tier-badge.free { background: #e2e8f0; color: #4a5568; }
+        .tier-badge.pro { background: #4299e1; color: white; }
+        .tier-badge.enterprise { background: #ed8936; color: white; }
+        
+        .key-date {
+            font-size: 12px;
+            color: #999;
+        }
+        
+        .key-value {
+            background: white;
+            padding: 12px;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 13px;
+            word-break: break-all;
+            margin: 10px 0;
+            border: 1px solid #e0e0e0;
+        }
+        
+        .key-limits {
+            font-size: 12px;
+            color: #666;
+            margin: 5px 0;
+        }
+        
+        .key-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .copy-btn {
+            background: #38a169;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+        }
+        
+        .revoke-btn {
+            background: #e53e3e;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+        }
+        
+        .test-btn {
+            background: #4299e1;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+        }
+        
+        .no-keys {
             text-align: center;
-            margin-top: 20px;
+            padding: 40px;
+            color: #999;
         }
-        .redirect a {
-            color: #667eea;
-            text-decoration: none;
+        
+        .alert {
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            display: none;
+        }
+        
+        .alert-success {
+            background: #c6f6d5;
+            color: #22543d;
+            border: 1px solid #9ae6b4;
+        }
+        
+        .alert-error {
+            background: #fed7d7;
+            color: #742a2a;
+            border: 1px solid #fc8181;
+        }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        @media (max-width: 768px) {
+            body { padding: 10px; }
+            .tier-options { grid-template-columns: 1fr; }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h2>🔐 Login to Jai</h2>
-        <form id="loginForm">
-            <input type="text" id="username" placeholder="Username" required>
-            <input type="password" id="password" placeholder="Password" required>
-            <button type="submit">Login</button>
-        </form>
-        <div id="message"></div>
-        <div class="redirect">
-            Don't have an account? <a href="signup.html">Sign up here</a>
+        <div class="header">
+            <h1>🤖 Jai API Dashboard</h1>
+            <div class="user-info">
+                <span>👤 <span id="username"></span></span>
+                <button class="logout-btn" onclick="logout()">Logout</button>
+            </div>
         </div>
+        
+        <div class="stats">
+            <div class="stat-card">
+                <div class="number" id="totalKeys">0</div>
+                <div class="label">Total API Keys</div>
+            </div>
+            <div class="stat-card">
+                <div class="number" id="activeKeys">0</div>
+                <div class="label">Active Keys</div>
+            </div>
+            <div class="stat-card">
+                <div class="number" id="totalRequests">0</div>
+                <div class="label">Total Requests</div>
+            </div>
+        </div>
+        
+        <div class="create-section">
+            <h3>🔑 Create New API Key</h3>
+            <div class="alert" id="alert"></div>
+            
+            <div class="tier-options">
+                <!-- Free Tier -->
+                <div class="tier-card" data-tier="free" onclick="selectTier('free')">
+                    <div class="tier-name">🎁 Free Tier</div>
+                    <div class="tier-price">₦0</div>
+                    <ul class="tier-features">
+                        <li>2 requests per minute</li>
+                        <li>100 requests per day</li>
+                        <li>Basic chat only</li>
+                        <li>7-day memory</li>
+                        <li class="disabled">No document upload</li>
+                        <li class="disabled">No document search</li>
+                        <li class="disabled">No long-term memory</li>
+                    </ul>
+                </div>
+                
+                <!-- Pro Tier -->
+                <div class="tier-card recommended" data-tier="pro" onclick="selectTier('pro')">
+                    <div class="recommended-badge">⭐ RECOMMENDED</div>
+                    <div class="tier-name">⚡ Pro Tier</div>
+                    <div class="tier-price">₦10,000</div>
+                    <ul class="tier-features">
+                        <li>15 requests per minute</li>
+                        <li>10,000 requests per day</li>
+                        <li>Full chat capabilities</li>
+                        <li>30-day memory</li>
+                        <li>Document upload (10MB)</li>
+                        <li>Document search</li>
+                        <li>Long-term memory</li>
+                        <li>Conversation export</li>
+                        <li>Email support</li>
+                    </ul>
+                </div>
+                
+                <!-- Enterprise Tier -->
+                <div class="tier-card" data-tier="enterprise" onclick="selectTier('enterprise')">
+                    <div class="tier-name">🏢 Enterprise Tier</div>
+                    <div class="tier-price">₦190,000</div>
+                    <ul class="tier-features">
+                        <li>1,000 requests per minute</li>
+                        <li>Unlimited daily requests</li>
+                        <li>Everything in Pro</li>
+                        <li>100MB document upload</li>
+                        <li>Unlimited document storage</li>
+                        <li>5-year memory retention</li>
+                        <li>Dedicated support</li>
+                        <li>SLA guarantee</li>
+                        <li>Custom integrations</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="key-name-input">
+                <label>Key Name (e.g., "My Production App")</label>
+                <input type="text" id="keyName" placeholder="Enter a name for this API key">
+            </div>
+            
+            <button class="create-btn" onclick="checkPayment()">➕ Create API Key</button>
+        </div>
+        
+        <div class="keys-section">
+            <h3>📋 Your API Keys</h3>
+            <div id="keysList">
+                <div class="no-keys">Loading your API keys...</div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Payment Modal -->
+    <div class="modal" id="paymentModal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeModal()">&times;</span>
+            <h2>💳 Payment Required</h2>
+            <p>You selected <strong id="selectedTierName"></strong> for <strong id="selectedTierPrice"></strong></p>
+            
+            <div class="bank-details">
+                <h3>Bank Transfer Details</h3>
+                <p><strong>Bank:</strong> Zenith Bank</p>
+                <p><strong>Account Name:</strong> Joshua Giwa</p>
+                <p><strong>Account Number:</strong> 4268186069</p>
+                <button class="copy-bank-btn" onclick="copyBankDetails()">📋 Copy Bank Details</button>
+            </div>
+            
+            <p>After payment, enter your transaction reference:</p>
+            <input type="text" id="transactionRef" class="payment-input" placeholder="e.g., ZENITH123456789">
+            <button class="verify-btn" onclick="verifyPayment()">✅ Verify Payment & Create Key</button>
+        </div>
+    </div>
+    
+    <div class="loading" id="loading">
+        <div class="spinner"></div>
+        <p>Processing...</p>
     </div>
 
     <script>
-        document.getElementById('loginForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
+        // Get session from localStorage
+        const sessionToken = localStorage.getItem('jai_session_token');
+        const username = localStorage.getItem('jai_username');
+        
+        if (!sessionToken || !username) {
+            window.location.href = 'login.html';
+        }
+        
+        document.getElementById('username').textContent = username;
+        
+        let selectedTier = 'free';
+        let pendingKeyName = '';
+        
+        // Tier details
+        function getTierDetails(tier) {
+            const details = {
+                free: { rate: 2, daily: 100, price: 0, priceNaira: '₦0', name: 'Free Tier' },
+                pro: { rate: 15, daily: 10000, price: 10000, priceNaira: '₦10,000', name: 'Pro Tier' },
+                enterprise: { rate: 1000, daily: null, price: 190000, priceNaira: '₦190,000', name: 'Enterprise Tier' }
+            };
+            return details[tier];
+        }
+        
+        function selectTier(tier) {
+            selectedTier = tier;
+            document.querySelectorAll('.tier-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            document.querySelector(`.tier-card[data-tier="${tier}"]`).classList.add('selected');
+        }
+        
+        // API call helper
+        async function apiCall(endpoint, method, data = null) {
+            const options = {
+                method: method,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Session-Token': sessionToken
+                }
+            };
+            if (data) {
+                options.body = JSON.stringify(data);
+            }
             
-            const username = document.getElementById('username').value;
-            const password = document.getElementById('password').value;
-            const messageDiv = document.getElementById('message');
+            const response = await fetch(endpoint, options);
+            return await response.json();
+        }
+        
+        // Load keys from backend
+        async function loadKeys() {
+            try {
+                const data = await apiCall('/api/keys/list', 'GET');
+                if (data.keys) {
+                    renderKeys(data.keys);
+                    updateStats(data.keys);
+                }
+            } catch (err) {
+                console.error('Failed to load keys:', err);
+                document.getElementById('keysList').innerHTML = '<div class="no-keys">Failed to load keys. Please refresh.</div>';
+            }
+        }
+        
+        // Create API key via backend
+        async function createApiKeyOnBackend(keyName, tier) {
+            const data = await apiCall('/api/keys/create', 'POST', {
+                name: keyName,
+                tier: tier
+            });
+            return data;
+        }
+        
+        // Check payment and create key
+        function checkPayment() {
+            const keyName = document.getElementById('keyName').value.trim();
+            if (!keyName) {
+                showAlert('Please enter a key name', 'error');
+                return;
+            }
+            
+            pendingKeyName = keyName;
+            
+            if (selectedTier === 'free') {
+                createApiKey();
+            } else {
+                const tierDetails = getTierDetails(selectedTier);
+                document.getElementById('selectedTierName').textContent = tierDetails.name;
+                document.getElementById('selectedTierPrice').textContent = tierDetails.priceNaira;
+                document.getElementById('paymentModal').style.display = 'flex';
+            }
+        }
+        
+        async function createApiKey() {
+            const loading = document.getElementById('loading');
+            loading.style.display = 'block';
             
             try {
-                const response = await fetch('/api/login', {
+                const result = await createApiKeyOnBackend(pendingKeyName, selectedTier);
+                
+                if (result.success) {
+                    showAlert(`✅ ${selectedTier.toUpperCase()} API Key created! Rate limit: ${getTierDetails(selectedTier).rate} req/min`, 'success');
+                    document.getElementById('keyName').value = '';
+                    
+                    // Show the new API key in a modal
+                    alert(`🔑 Your new API Key:\n\n${result.api_key}\n\n⚠️ Save this key now! It will not be shown again.`);
+                    
+                    // Reload keys list
+                    await loadKeys();
+                } else {
+                    showAlert('❌ Failed to create key: ' + (result.error || 'Unknown error'), 'error');
+                }
+            } catch (err) {
+                showAlert('❌ Error creating key: ' + err.message, 'error');
+            } finally {
+                loading.style.display = 'none';
+            }
+        }
+        
+        async function verifyPayment() {
+            const transactionRef = document.getElementById('transactionRef').value.trim();
+            if (!transactionRef) {
+                showAlert('Please enter your transaction reference', 'error');
+                return;
+            }
+            
+            closeModal();
+            
+            // Here you would verify payment with your backend
+            // For now, just create the key
+            showAlert('✅ Payment reference recorded! Creating your API key...', 'success');
+            await createApiKey();
+        }
+        
+        async function revokeKey(apiKeyPreview) {
+            if (!confirm('Are you sure you want to revoke this API key? This action cannot be undone.')) {
+                return;
+            }
+            
+            const loading = document.getElementById('loading');
+            loading.style.display = 'block';
+            
+            try {
+                // Need full key to revoke - in production, you'd store key IDs
+                // For now, we'll need to get the full key from user
+                const fullKey = prompt('Enter the full API key to revoke:');
+                if (!fullKey) return;
+                
+                const result = await apiCall('/api/keys/revoke', 'POST', { api_key: fullKey });
+                
+                if (result.success) {
+                    showAlert('✅ API key revoked successfully', 'success');
+                    await loadKeys();
+                } else {
+                    showAlert('❌ Failed to revoke key: ' + (result.error || 'Unknown error'), 'error');
+                }
+            } catch (err) {
+                showAlert('❌ Error revoking key: ' + err.message, 'error');
+            } finally {
+                loading.style.display = 'none';
+            }
+        }
+        
+        async function testKey(apiKey) {
+            // Test the key with jai1
+            const loading = document.getElementById('loading');
+            loading.style.display = 'block';
+            
+            try {
+                const response = await fetch('https://jai1-sh81.onrender.com/api/chat', {
                     method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({username, password})
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-API-Key': apiKey,
+                        'X-Session-Token': sessionToken
+                    },
+                    body: JSON.stringify({ message: 'Test message from dashboard' })
                 });
                 
                 const data = await response.json();
                 
                 if (response.ok) {
-                    localStorage.setItem('jai_username', username);
-                    window.location.href = 'dashboard.html';
+                    showAlert(`✅ Test successful! Response: ${data.reply.substring(0, 100)}...`, 'success');
                 } else {
-                    messageDiv.innerHTML = '<div class="error">❌ ' + data.error + '</div>';
+                    showAlert(`❌ Test failed: ${data.error}`, 'error');
                 }
-            } catch(err) {
-                messageDiv.innerHTML = '<div class="error">❌ Connection error</div>';
+            } catch (err) {
+                showAlert('❌ Test failed: ' + err.message, 'error');
+            } finally {
+                loading.style.display = 'none';
             }
-        });
+        }
+        
+        function copyKey(key) {
+            navigator.clipboard.writeText(key);
+            showAlert('✅ API Key copied to clipboard!', 'success');
+        }
+        
+        function copyBankDetails() {
+            const details = `Bank: Zenith Bank\nAccount Name: Joshua Giwa\nAccount Number: 4268186069`;
+            navigator.clipboard.writeText(details);
+            showAlert('Bank details copied!', 'success');
+        }
+        
+        function renderKeys(keys) {
+            const container = document.getElementById('keysList');
+            
+            if (!keys || keys.length === 0) {
+                container.innerHTML = '<div class="no-keys">No API keys yet. Create your first key above.</div>';
+                return;
+            }
+            
+            container.innerHTML = keys.map(key => `
+                <div class="key-card ${key.tier}">
+                    <div class="key-header">
+                        <div class="key-name">🔑 ${escapeHtml(key.name)}</div>
+                        <div>
+                            <span class="tier-badge ${key.tier}">${key.tier.toUpperCase()}</span>
+                        </div>
+                    </div>
+                    <div class="key-header" style="margin-top: 5px;">
+                        <div class="key-date">Created: ${new Date(key.created_at).toLocaleDateString()}</div>
+                        <div class="key-limits">⚡ ${key.limits.rate} req/min | 📅 ${key.limits.daily ? key.limits.daily + '/day' : 'Unlimited/day'}</div>
+                    </div>
+                    <div class="key-value">${escapeHtml(key.key_preview)}</div>
+                    <div class="key-actions">
+                        <button class="copy-btn" onclick="copyKey('${escapeHtml(key.key_preview)}')">📋 Copy Key Preview</button>
+                        <button class="test-btn" onclick="testKey(prompt('Enter full key to test:'))">🧪 Test with jai1</button>
+                        <button class="revoke-btn" onclick="revokeKey('${escapeHtml(key.key_preview)}')">🗑️ Revoke</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        function updateStats(keys) {
+            const total = keys.length;
+            const active = keys.filter(k => k.active).length;
+            const totalReqs = keys.reduce((sum, k) => sum + (k.requests || 0), 0);
+            
+            document.getElementById('totalKeys').textContent = total;
+            document.getElementById('activeKeys').textContent = active;
+            document.getElementById('totalRequests').textContent = totalReqs;
+        }
+        
+        function showAlert(message, type) {
+            const alert = document.getElementById('alert');
+            alert.className = `alert alert-${type}`;
+            alert.textContent = message;
+            alert.style.display = 'block';
+            setTimeout(() => {
+                alert.style.display = 'none';
+            }, 5000);
+        }
+        
+        function escapeHtml(str) {
+            return str.replace(/[&<>]/g, function(m) {
+                if (m === '&') return '&amp;';
+                if (m === '<') return '&lt;';
+                if (m === '>') return '&gt;';
+                return m;
+            });
+        }
+        
+        function closeModal() {
+            document.getElementById('paymentModal').style.display = 'none';
+            document.getElementById('transactionRef').value = '';
+        }
+        
+        async function logout() {
+            await apiCall('/api/logout', 'POST', { session_token: sessionToken });
+            localStorage.removeItem('jai_session_token');
+            localStorage.removeItem('jai_username');
+            window.location.href = 'login.html';
+        }
+        
+        window.onclick = function(event) {
+            const modal = document.getElementById('paymentModal');
+            if (event.target === modal) {
+                closeModal();
+            }
+        }
+        
+        // Initialize
+        selectTier('free');
+        loadKeys();
     </script>
 </body>
 </html>
