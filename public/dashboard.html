@@ -103,7 +103,7 @@
         
         .tier-options {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
             gap: 20px;
             margin-bottom: 20px;
         }
@@ -221,8 +221,82 @@
             width: 100%;
         }
         
-        .create-btn:hover {
+        .create-btn:hover:not(:disabled) {
             background: #5a67d8;
+        }
+        
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .modal-content {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 500px;
+            width: 90%;
+            position: relative;
+        }
+        
+        .close-modal {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 24px;
+            cursor: pointer;
+            color: #999;
+        }
+        
+        .bank-details {
+            background: #f7f7f7;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            text-align: center;
+        }
+        
+        .bank-details p {
+            margin: 10px 0;
+        }
+        
+        .copy-bank-btn {
+            background: #38a169;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        
+        .payment-input {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            margin: 10px 0;
+            font-family: monospace;
+        }
+        
+        .verify-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 10px;
         }
         
         .keys-section {
@@ -388,7 +462,7 @@
                 <!-- Free Tier -->
                 <div class="tier-card" data-tier="free" onclick="selectTier('free')">
                     <div class="tier-name">🎁 Free Tier</div>
-                    <div class="tier-price">$0 <small>/ month</small></div>
+                    <div class="tier-price">₦0</div>
                     <ul class="tier-features">
                         <li>2 requests per minute</li>
                         <li>100 requests per day</li>
@@ -404,7 +478,7 @@
                 <div class="tier-card recommended" data-tier="pro" onclick="selectTier('pro')">
                     <div class="recommended-badge">⭐ RECOMMENDED</div>
                     <div class="tier-name">⚡ Pro Tier</div>
-                    <div class="tier-price">$29 <small>/ month</small></div>
+                    <div class="tier-price">₦10,000</div>
                     <ul class="tier-features">
                         <li>15 requests per minute</li>
                         <li>10,000 requests per day</li>
@@ -421,7 +495,7 @@
                 <!-- Enterprise Tier -->
                 <div class="tier-card" data-tier="enterprise" onclick="selectTier('enterprise')">
                     <div class="tier-name">🏢 Enterprise Tier</div>
-                    <div class="tier-price">$299 <small>/ month</small></div>
+                    <div class="tier-price">₦190,000</div>
                     <ul class="tier-features">
                         <li>1,000 requests per minute</li>
                         <li>Unlimited daily requests</li>
@@ -432,7 +506,6 @@
                         <li>Dedicated support</li>
                         <li>SLA guarantee</li>
                         <li>Custom integrations</li>
-                        <li>On-premise option</li>
                     </ul>
                 </div>
             </div>
@@ -442,7 +515,7 @@
                 <input type="text" id="keyName" placeholder="Enter a name for this API key">
             </div>
             
-            <button class="create-btn" onclick="createApiKey()">➕ Create API Key</button>
+            <button class="create-btn" id="createBtn" onclick="checkPayment()">➕ Create API Key</button>
         </div>
         
         <div class="keys-section">
@@ -453,8 +526,30 @@
         </div>
     </div>
 
+    <!-- Payment Modal -->
+    <div class="modal" id="paymentModal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeModal()">&times;</span>
+            <h2>💳 Payment Required</h2>
+            <p>You selected <strong id="selectedTierName"></strong> for <strong id="selectedTierPrice"></strong></p>
+            
+            <div class="bank-details">
+                <h3>Bank Transfer Details</h3>
+                <p><strong>Bank:</strong> Zenith Bank</p>
+                <p><strong>Account Name:</strong> Joshua Giwa</p>
+                <p><strong>Account Number:</strong> 4268186069</p>
+                <button class="copy-bank-btn" onclick="copyBankDetails()">📋 Copy Bank Details</button>
+            </div>
+            
+            <p>After payment, enter your transaction reference:</p>
+            <input type="text" id="transactionRef" class="payment-input" placeholder="e.g., ZENITH123456789">
+            <button class="verify-btn" onclick="verifyPayment()">✅ Verify Payment & Create Key</button>
+        </div>
+    </div>
+
     <script>
         let selectedTier = 'free';
+        let pendingKeyName = '';
         
         const username = localStorage.getItem('jai_username');
         if (!username) {
@@ -481,33 +576,48 @@
             document.querySelector(`.tier-card[data-tier="${tier}"]`).classList.add('selected');
         }
         
-        function getTierLimits(tier) {
-            const limits = {
-                free: { rate: 2, daily: 100, price: 0, features: ['chat'] },
-                pro: { rate: 15, daily: 10000, price: 29, features: ['chat', 'documents', 'memory'] },
-                enterprise: { rate: 1000, daily: null, price: 299, features: ['all'] }
+        function getTierDetails(tier) {
+            const details = {
+                free: { rate: 2, daily: 100, price: 0, priceNaira: '₦0', name: 'Free Tier' },
+                pro: { rate: 15, daily: 10000, price: 10000, priceNaira: '₦10,000', name: 'Pro Tier' },
+                enterprise: { rate: 1000, daily: null, price: 190000, priceNaira: '₦190,000', name: 'Enterprise Tier' }
             };
-            return limits[tier];
+            return details[tier];
         }
         
-        function createApiKey() {
+        function checkPayment() {
             const keyName = document.getElementById('keyName').value.trim();
             if (!keyName) {
                 showAlert('Please enter a key name', 'error');
                 return;
             }
             
+            pendingKeyName = keyName;
+            
+            if (selectedTier === 'free') {
+                createApiKey();
+            } else {
+                // Show payment modal for paid tiers
+                const tierDetails = getTierDetails(selectedTier);
+                document.getElementById('selectedTierName').textContent = tierDetails.name;
+                document.getElementById('selectedTierPrice').textContent = tierDetails.priceNaira;
+                document.getElementById('paymentModal').style.display = 'flex';
+            }
+        }
+        
+        function createApiKey() {
             const keys = loadKeys();
-            const limits = getTierLimits(selectedTier);
+            const tierDetails = getTierDetails(selectedTier);
             
             const newKey = {
                 id: 'key_' + Date.now() + '_' + Math.random().toString(36).substr(2, 8),
-                name: keyName,
+                name: pendingKeyName,
                 key: 'jai_' + Math.random().toString(36).substring(2) + 
                      Math.random().toString(36).substring(2) +
                      Math.random().toString(36).substring(2),
                 tier: selectedTier,
-                limits: limits,
+                limits: { rate: tierDetails.rate, daily: tierDetails.daily },
+                price_paid: tierDetails.price,
                 created_at: new Date().toISOString(),
                 active: true,
                 requests: 0
@@ -517,9 +627,42 @@
             saveKeys(keys);
             
             document.getElementById('keyName').value = '';
+            pendingKeyName = '';
             renderKeys();
             updateStats();
-            showAlert(`✅ ${selectedTier.toUpperCase()} API Key created! Rate limit: ${limits.rate} req/min`, 'success');
+            
+            if (selectedTier === 'free') {
+                showAlert(`✅ FREE API Key created! Rate limit: ${tierDetails.rate} req/min`, 'success');
+            } else {
+                showAlert(`✅ ${selectedTier.toUpperCase()} API Key created! Payment of ${tierDetails.priceNaira} verified. Rate limit: ${tierDetails.rate} req/min`, 'success');
+            }
+        }
+        
+        function verifyPayment() {
+            const transactionRef = document.getElementById('transactionRef').value.trim();
+            if (!transactionRef) {
+                showAlert('Please enter your transaction reference', 'error');
+                return;
+            }
+            
+            // Close modal
+            closeModal();
+            
+            // Create the API key
+            createApiKey();
+            
+            showAlert(`✅ Payment reference recorded! Your ${selectedTier.toUpperCase()} API key has been created.`, 'success');
+        }
+        
+        function copyBankDetails() {
+            const details = `Bank: Zenith Bank\nAccount Name: Joshua Giwa\nAccount Number: 4268186069`;
+            navigator.clipboard.writeText(details);
+            showAlert('Bank details copied!', 'success');
+        }
+        
+        function closeModal() {
+            document.getElementById('paymentModal').style.display = 'none';
+            document.getElementById('transactionRef').value = '';
         }
         
         async function copyKey(key) {
@@ -610,6 +753,14 @@
         function logout() {
             localStorage.removeItem('jai_username');
             window.location.href = 'signup.html';
+        }
+        
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('paymentModal');
+            if (event.target === modal) {
+                closeModal();
+            }
         }
         
         // Initialize with free tier selected
