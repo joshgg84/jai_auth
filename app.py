@@ -265,29 +265,40 @@ def validate_key():
     api_key = data.get('api_key')
     session_token = data.get('session_token')
     
+    print(f"🔍 Validating key: {api_key[:20] if api_key else 'None'}... for session: {session_token[:20] if session_token else 'None'}...")
+    
     # First verify session
     username = verify_session(session_token)
     if not username:
+        print("❌ Invalid session")
         return jsonify({'valid': False, 'error': 'Invalid session'}), 401
+    
+    print(f"✅ Session valid for user: {username}")
     
     # Load API keys
     keys = load_api_keys()
     
     if api_key not in keys:
+        print(f"❌ API key not found: {api_key[:20] if api_key else 'None'}...")
         return jsonify({'valid': False, 'error': 'Invalid API key'}), 401
     
     key_data = keys[api_key]
+    print(f"✅ API key found: {key_data.get('name')} ({key_data.get('tier')})")
     
     # Check if key belongs to this user
     if key_data.get('username') != username:
+        print(f"❌ Key belongs to {key_data.get('username')}, not {username}")
         return jsonify({'valid': False, 'error': 'API key does not belong to user'}), 403
     
     # Check if key is active
     if not key_data.get('active', True):
+        print("❌ Key is deactivated")
         return jsonify({'valid': False, 'error': 'API key is deactivated'}), 401
     
     # Get limits from the key (source of truth)
     limits = key_data.get('limits', {'rate': 2, 'daily': 100})
+    
+    print(f"✅ Validation successful! Rate limit: {limits.get('rate')} req/min")
     
     return jsonify({
         'valid': True,
@@ -314,8 +325,20 @@ def track_usage():
         keys[api_key]['requests'] = keys[api_key].get('requests', 0) + 1
         keys[api_key]['last_used'] = datetime.now().isoformat()
         save_api_keys(keys)
+        print(f"📊 Tracked usage for key: {api_key[:20]}... (Total: {keys[api_key]['requests']})")
     
     return jsonify({'success': True})
+
+# ============= HEALTH CHECK =============
+
+@app.route('/health', methods=['GET'])
+def health():
+    return jsonify({
+        'status': 'healthy',
+        'service': 'jai-api',
+        'sessions': len(active_sessions),
+        'total_keys': len(load_api_keys())
+    })
 
 # ============= STATIC FILES (Dashboard) =============
 
@@ -327,21 +350,24 @@ def index():
 def static_files(path):
     return send_from_directory('public', path)
 
-# ============= HEALTH CHECK =============
-
-@app.route('/health', methods=['GET'])
-def health():
+# ============= DEBUG ENDPOINT (remove in production) =============
+@app.route('/debug/sessions', methods=['GET'])
+def debug_sessions():
+    """Debug endpoint to see active sessions (remove in production)"""
+    sessions = {k: {'username': v['username'], 'expiry': v['expiry'].isoformat()} 
+                for k, v in active_sessions.items()}
     return jsonify({
-        'status': 'healthy',
-        'service': 'jai-api',
-        'sessions': len(active_sessions)
+        'active_sessions': len(active_sessions),
+        'sessions': sessions,
+        'total_keys': len(load_api_keys())
     })
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 8000))
-    print("\n" + "="*50)
+    
+    print("\n" + "="*60)
     print("🔐 JAI-API SERVER STARTING")
-    print("="*50)
+    print("="*60)
     print(f"Port: {port}")
     print(f"Users file: {USERS_FILE}")
     print(f"API Keys file: {API_KEYS_FILE}")
@@ -355,6 +381,7 @@ if __name__ == '__main__':
     print("  POST /api/keys/revoke - Revoke API key (requires session)")
     print("  POST /api/validate-key - Validate key for jai1")
     print("  POST /api/track-usage - Track usage for jai1")
-    print("="*50 + "\n")
+    print("  GET  /health - Health check")
+    print("="*60 + "\n")
     
     app.run(host='0.0.0.0', port=port)
